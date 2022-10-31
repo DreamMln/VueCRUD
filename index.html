@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Vue.js - Import Vue.js core library -->
+    <script src="https://unpkg.com/vue@next"></script>
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- Axios -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.js"></script>
+    <title>Something Cooler</title>
+</head>
+
+<body>
+    <!--BOOTSTRAP CDN is the distribution of the most popular CSS framework in the world 
+           using a content delivery network. It is a geographically distributed group 
+           of servers that work together to provide fast delivery of Internet content
+    
+        VUE er et JS Framework, til at bygge UI's, med JS HTML og CSS. 
+            VUE CDN LInk: This element tells the browser to run the script file 
+            that the src directive references. After the script runs, the Vue APIs 
+            become available.
+
+        Display data på siden, skal man bruge handlebars {{ }} 
+
+        Directives, v- directives er attributter VUE genkender, 
+        man bruger v-bind, der binder data value til en attribut. 
+        bruges til bind data til en attribute.
+        v-bind:src="value". attribute value bliver evaluated på samme måde 
+        som den måde {{ }} syntax bruges.
+
+        This module introduced you to the Vue.js JavaScript framework. 
+        You saw how to start by using a code editor. You set up an HTML 
+        application page and created a Vue.js code file that you linked 
+        in the HTML file. Finally, you created a starter application 
+        and displayed dynamic data on the page by using HTML attributes and 
+        attribute bindings.
+    -->
+
+    <!-- <div id="app" er det HTML element der vil hoste appen -->
+    <!--if the list, length is over 0 then GET the list info-->
+    <div id="app" class="container">
+        <div class="row">
+            <div class="col">
+                <h3 class="display-3 text-center">Wine Cooler</h3>
+
+
+                <!--FILTER FRONTEND VUE-->
+                <h6><i>Filtere på Bottles In Storage: (Vue)</i>:</h6>
+                <input v-model.number="filter" id="filterId" placeholder="Filter..." type="number" />
+                <!--REST-->
+                <h6><i>Filtere på bottles: (REST)</i>:</h6>
+                <input v-model.number="filter1" placeholder="" type="text" />
+                <button class="btn btn-dark" v-on:click="getFilter()">Søgning</button>
+                <br>
+                <br>
+                <div class="row justify-content-center">
+                    <table v-if="ListArray.length > 0" class="table w-50 border p-3" id="getCooler">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>Id</th>
+                                <th>                
+                                    <button class="btn btn-dark" v-on:click="sortByTemp()"><b>Temp (sort)</b></button>
+                                </th>
+                                <th>Capacity Of Bottles</th>
+                                <th>Bottles In Storage</th>
+                            </tr>
+                        </thead>
+                        <!--for each cooler in the list, GET the list info-->
+                        <tbody v-for="cooler in ListArray">
+                            <!--hvis bottlesInStorage er større end eller = alt der er over-->
+                            <tr v-if="cooler.bottlesInStorage >= this.filter">
+                                <td> {{ cooler.coolerId }} </td>
+                                <td> {{ cooler.temp }} </td>
+                                <td> {{ cooler.capacityOfBottles }} </td>
+                                <td> {{ cooler.bottlesInStorage }} </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <!--GET by ID-->
+        <h5>Get by Id</h5>
+        <input class="form-control-sm" id="inputGetById" v-model.number="id" placeholder="Id..." type="number" />
+        <button id="butGetById" class="btn btn-outline-dark" v-on:click="getById()">Search on Id</button>
+        <div id="outGetById" class="p-3" style="background-color: rgba(255,0,0,0.1); width: 60%; font-weight: bold;"
+            v-if="getWineData">
+            <b>Id:</b> {{ getWineData.coolerId }}
+            <b>Capacity Of Bottles:</b> {{ getWineData.capacityOfBottles }}
+            <b>Temp: </b> {{ getWineData.temp }}
+            <b>Bottles In Storage:</b> {{ getWineData.bottlesInStorage }}
+        </div>
+
+        <!--POST-->
+        <!--input putter man info ind i-->
+        <h5>Add WineCooler </h5>
+        <input class="form-control-sm" v-model.number="addData.temp" placeholder="temp..." type="number" />
+        <input class="form-control-sm" v-model.number="addData.capacityOfBottles" placeholder="capacity..." type="number" />
+        <input class="form-control-sm" v-model.number="addData.bottlesInStorage" placeholder="bottles..." type="number" />
+        <button v-on:click="postCooler()" class="btn btn-outline-dark">Add</button>
+        <div class="p-3" class="p-3" style="background-color: rgba(255,0,0,0.1); width: 60%; font-weight: bold;"
+            v-if="addMessage">
+            <!--addMessage en var der er blevet erklæret, så vi kan bruge den til output-->
+            <!--Output is the below--> 
+            {{ addMessage }}
+        </div>
+
+        <!--DELETE-->
+        <h5>Delete WineCooler</h5>
+        <input class="form-control-sm" id="coolId" v-model.number="coolerId" placeholder="Search on ID..." type="number" />
+        <button id="coolDelete" v-on:click="deleteCooler(coolerId)" class="btn btn-outline-dark">Delete</button>
+        <div><b id="coolDeleteInside">
+                {{ deleteMessage }}
+            </b></div>
+
+        <!--UPDATE-->
+        <h5>Update WineCooler </h5>
+        <input class="form-control-sm" v-model.number="updateData.id" type="number" />
+        <input class="form-control-sm" v-model="updateData.temp" placeholder="temp..." type="number" />
+        <input class="form-control-sm" v-model="updateData.capacityOfBottles" placeholder="capacityOfBottles..." type="number" />
+        <input class="form-control-sm" v-model.number="updateData.bottlesInStorage" placeholder="bottlesInStorage..." type="number" />
+        <button v-on:click="updateCooler()" class="btn btn-outline-dark">Update</button>
+        <div class="p-3" style="background-color: rgba(255,0,0,0.1); width: 60%; font-weight: bold;"
+            v-if="updateMessage">
+            {{ updateMessage }}
+        </div>
+
+        <!--<h5>Add Wine - opg 7</h5>
+        <input v-model="idCooler" placeholder="id..." type="number" />
+        <button v-on:click="addEkstraBottle()" class="btn btn-dark">Add a bottle</button>
+        <div class="styleInput" v-if="addMessage1">
+          {{addMessage1}}
+        </div>-->
+
+
+    </div><!--container slut-->
+    <!-- Javascript-reference -->
+    <script src="script.js"></script>
+</body>
+
+</html>
